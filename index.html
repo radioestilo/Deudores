@@ -3,532 +3,427 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FANTO V1 - CORE TITÁN v8.6.0 (CORE STABILITY)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/fontsource-roboto@4.0.0/index.css" rel="stylesheet">
+    <title>FANTO V1 - Control de Cobranzas</title>
     <style>
-        :root { --fanto-navy: #020617; --fanto-blue: #2563eb; --fanto-emerald: #10b981; --fanto-danger: #ef4444; }
-        body { font-family: 'Roboto', sans-serif; background-color: #f1f5f9; color: #0f172a; -webkit-font-smoothing: antialiased; overflow-x: hidden; height: 100vh; display: flex; justify-content: center; }
-        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; } }
-        #loginScreen, #lockScreen { background: radial-gradient(circle at top, #1e40af, #020617); }
-        .card-fanto { background: white; border-radius: 40px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s ease; position: relative; }
-        .sticky-bottom { position: sticky; bottom: 0; background: white; border-top: 4px solid #f1f5f9; padding: 25px; z-index: 1000; border-radius: 50px 50px 0 0; box-shadow: 0 -20px 50px rgba(0,0,0,0.1); }
-        .stock-input { background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 14px; padding: 8px; font-weight: 900; text-align: center; width: 95px; outline: none; transition: 0.3s; color: var(--fanto-navy); }
-        .tab-active { background-color: var(--fanto-navy) !important; color: white !important; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25); transform: translateY(-3px); }
-        .search-bar { background: #fff; border: 3px solid #e2e8f0; border-radius: 25px; padding: 20px 35px; width: 100%; font-weight: 800; outline: none; transition: 0.3s; font-size: 1.1rem; text-align: center; }
-        #invoiceContent { width: 550px; min-height: 450px; height: auto; background: white; color: black; padding: 50px; display: flex; flex-direction: column; font-family: 'Courier New', Courier, monospace; border: 1px solid #eee; font-size: 13px; }
-        .logo-img-invoice { width: 120px; height: auto; margin: 0 auto 15px; object-fit: contain; display: block; }
+        :root {
+            --rojo-bdv: #ce1126;
+            --verde-pro: #157347;
+            --azul-fanto: #003366;
+            --fondo: #f0f2f5;
+            --blanco: #ffffff;
+            --rojo-vencido: #ffdce0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--fondo); }
+
+        /* PANTALLA DE LOGIN */
+        #overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: var(--azul-fanto); color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; text-align: center;
+        }
+        .login-box { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; backdrop-filter: blur(10px); width: 90%; max-width: 350px; border: 1px solid rgba(255,255,255,0.2); }
+        .login-box input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; font-size: 1rem; }
+
+        header { background: var(--azul-fanto); color: white; padding: 15px; text-align: center; }
+        header h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; }
+
+        nav { background: #1a1a1a; display: flex; justify-content: center; gap: 10px; padding: 10px; position: sticky; top: 0; z-index: 1000; flex-wrap: wrap; }
+        nav a { color: #ccc; text-decoration: none; font-weight: 600; padding: 8px 12px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; }
+        nav a.active { color: white; background: var(--rojo-bdv); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
+
+        /* MONITOR DE TASAS */
+        .rate-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+        .rate-card { color: white; padding: 20px; border-radius: 15px; text-align: center; cursor: pointer; position: relative; border: 4px solid transparent; transition: 0.3s; }
+        .active-rate { border-color: #ffeb3b; transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .bcv-card { background: linear-gradient(135deg, var(--rojo-bdv), #8b0a1a); }
+        .pro-card { background: linear-gradient(135deg, var(--verde-pro), #0e4b2e); }
+        .rate-value { font-size: 2rem; font-weight: 800; display: block; }
+        .edit-icon { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+
+        /* FORMULARIOS */
+        .card-form { background: white; padding: 20px; border-radius: 15px; display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .input-group { display: flex; flex-direction: column; }
+        label { font-size: 0.75rem; font-weight: bold; color: #666; margin-bottom: 4px; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .btn-main { background: var(--azul-fanto); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* TABLA */
+        .table-wrapper { background: white; border-radius: 12px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; min-width: 850px; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 0.75rem; border-bottom: 2px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.95rem; cursor: pointer; }
+        
+        /* ESTADOS DE FILA */
+        .selected-row { outline: 5px solid var(--rojo-bdv); background-color: #fff0f0 !important; position: relative; z-index: 10; }
+        .vencido { background-color: var(--rojo-vencido) !important; }
+        .vencido td { color: #b71c1c !important; font-weight: bold; }
+        .fila-total { background: #e9ecef !important; font-weight: 900; }
+        .editable-cell:hover { background-color: #f0f8ff; border-radius: 5px; }
+
+        @media (min-width: 768px) {
+            .rate-grid { grid-template-columns: 1fr 1fr; }
+            .card-form { grid-template-columns: repeat(2, 1fr); }
+            .btn-main { grid-column: span 2; }
+        }
+
+        .seccion { display: none; }
+        .seccion.active { display: block; }
     </style>
 </head>
-<body class="w-full text-left">
+<body>
 
-    <div id="lockScreen" class="fixed inset-0 z-[9000] hidden flex flex-col items-center justify-center p-10 text-center text-left">
-        <div class="bg-white p-16 rounded-[100px] shadow-2xl max-w-lg w-full border-b-[30px] border-red-600">
-            <h2 class="text-6xl font-black text-slate-950 mb-6 uppercase italic tracking-tighter">SISTEMA <span class="text-red-600">SELLADO</span></h2>
-            <p class="text-slate-400 font-bold uppercase mb-10 text-sm">Suscripción Expirada. Contacte al Creador.</p>
-            <button onclick="logout()" class="w-full bg-slate-950 text-white py-8 rounded-[60px] font-black uppercase tracking-widest text-sm shadow-xl">Cerrar Sesión</button>
+    <div id="overlay">
+        <h1 style="font-size: 2.5rem; margin-bottom: 5px;">FANTO V1</h1>
+        <p style="margin-bottom: 25px; opacity: 0.8;">Inicie sesión para continuar</p>
+        <div class="login-box">
+            <input type="text" id="userLogin" placeholder="Usuario">
+            <input type="password" id="passLogin" placeholder="Contraseña">
+            <button onclick="validarAcceso()" class="btn-main" style="width:100%; margin-top:10px;">INGRESAR</button>
         </div>
+        <p id="errorLogin" style="color: #ffeb3b; margin-top: 15px; font-size: 0.85rem; display: none;">❌ Credenciales incorrectas o expiradas</p>
     </div>
 
-    <div id="loginScreen" class="fixed inset-0 z-[6000] flex items-center justify-center p-6 text-center">
-        <div class="bg-white p-14 rounded-[110px] shadow-2xl max-w-sm w-full fade-in border-b-[30px] border-blue-900 text-center">
-            <img src="https://i.ibb.co/GfbpGws2/Picsart-26-02-24-20-03-41-830.jpg" alt="LOGO" class="w-32 mx-auto mb-6 rounded-2xl shadow-xl text-center">
-            <h1 class="text-5xl font-black text-slate-950 mb-3 tracking-tighter italic uppercase text-center">FANTO <span class="text-blue-700">V1</span></h1>
-            <div class="space-y-6">
-                <input type="text" id="username" placeholder="USUARIO" class="w-full p-7 border-4 border-slate-50 rounded-[55px] font-black uppercase outline-none focus:border-blue-600 transition-all bg-slate-50 text-xl shadow-inner text-center">
-                <input type="password" id="password" placeholder="CLAVE" class="w-full p-7 border-4 border-slate-50 rounded-[55px] font-black outline-none focus:border-blue-600 transition-all bg-slate-50 text-xl shadow-inner text-center">
-                <button onclick="handleLogin()" class="w-full bg-blue-700 text-white font-black py-8 rounded-[60px] shadow-2xl hover:bg-blue-800 transition-all uppercase tracking-widest text-base mt-6 text-center">Acceso al Núcleo</button>
-                <p id="loginLicenseMsg" class="text-[10px] font-black text-orange-600 uppercase mt-8 tracking-widest text-center"></p>
-            </div>
-        </div>
-    </div>
+    <header><h1>FANTO V1</h1></header>
 
-    <div id="mainApp" class="hidden h-screen w-full max-w-2xl md:max-w-4xl flex flex-col bg-white shadow-2xl relative border-x-[6px] border-slate-100 text-left">
-        <header class="bg-slate-950 text-white p-10 sticky top-0 z-[2000] flex flex-col gap-8 shadow-2xl border-b-[10px] border-blue-900">
-            <div class="flex justify-between items-center text-left">
-                <div class="flex items-center gap-6 text-left">
-                    <img src="https://i.ibb.co/GfbpGws2/Picsart-26-02-24-20-03-41-830.jpg" alt="LOGO APP" class="w-16 h-16 rounded-xl border-2 border-white/20 shadow-lg text-left">
-                    <div class="text-left text-left"><h1 class="text-4xl font-black italic tracking-tighter uppercase leading-none">FANTO V1</h1>
-                        <p class="text-[12px] font-black text-blue-400 uppercase tracking-widest mt-2 text-left"><span id="userDisplay">---</span> | <span id="roleDisplay">---</span></p></div>
+    <nav>
+        <a onclick="showTab('cobros')" id="tab-cobros" class="active">COBRANZAS</a>
+        <a onclick="showTab('adn')" id="tab-adn">ADN SISTEMA</a>
+        <a onclick="showTab('cuentas')" id="tab-cuentas">CUENTAS</a>
+    </nav>
+
+    <div class="container">
+        <div id="sec-cobros" class="seccion active">
+            <div class="rate-grid">
+                <div class="rate-card bcv-card active-rate" id="cardBCV" onclick="switchRate('BCV')">
+                    <div class="edit-icon" onclick="manualEdit(event, 'BCV')">✏️</div>
+                    <span class="rate-label">Banco Central de Venezuela</span>
+                    <span class="rate-value" id="valBCV">Bs. --</span>
+                    <small id="clock" style="font-size: 0.7rem;"></small>
                 </div>
-                <div class="flex gap-4 text-left">
-                    <button onclick="refreshAppState(true)" class="p-6 bg-blue-600 rounded-[35px] shadow-xl active:scale-90" id="syncBtn"><svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
-                    <button onclick="logout()" class="p-6 bg-white/5 text-white/40 rounded-[35px] font-black text-[11px] uppercase hover:bg-red-500/20">Salir</button>
+                <div class="rate-card pro-card" id="cardPRO" onclick="switchRate('PRO')">
+                    <div class="edit-icon" onclick="manualEdit(event, 'PRO')">✏️</div>
+                    <span class="rate-label">Dólar Promedio</span>
+                    <span class="rate-value" id="valPRO">Bs. --</span>
+                    <small style="font-size: 0.7rem; opacity: 0.8;">Mercado General</small>
                 </div>
             </div>
-            <div id="headerRateBox" class="bg-white/5 border border-white/10 p-6 rounded-[55px] flex justify-between items-center transition-all duration-700 shadow-inner text-left text-left">
-                <div class="flex flex-col text-left font-black text-left"><span class="text-[12px] text-slate-500 uppercase">Tasa Activa</span><span id="headerRateValue" class="text-5xl tabular-nums tracking-tighter text-left">Bs. 0.00</span></div>
-                <div class="flex gap-5 text-left"><button onclick="manualRatePrompt()" class="p-5 bg-white/10 rounded-3xl hover:bg-white/20"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
-                    <button onclick="syncBCV()" class="p-5 bg-green-600 rounded-3xl shadow-lg hover:bg-green-500"><svg id="syncIcon" class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button></div>
-            </div>
-        </header>
 
-        <nav class="flex border-b-4 border-slate-100 bg-white p-5 gap-1 sticky top-[280px] z-[1500] text-left overflow-x-auto custom-scroll">
-            <button onclick="switchTab('caja')" id="tabCaja" class="flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] tab-active min-w-[75px]">🛒 Caja</button>
-            <button onclick="generateSoulDNA()" id="btnAdnSeller" class="hidden flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] bg-indigo-50 text-indigo-700 min-w-[75px] shadow-sm">💾 ADN</button>
-            <button onclick="switchTab('stock')" id="tabStock" class="flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] bg-slate-50 hidden min-w-[75px]">📦 Stock</button>
-            <button onclick="switchTab('facturas')" id="tabFacturas" class="flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] bg-slate-50 hidden min-w-[85px]">🧾 Facturas</button>
-            <button onclick="switchTab('creditos')" id="tabCreditos" class="flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] bg-slate-50 hidden min-w-[85px]">💳 Créditos</button>
-            <button onclick="switchTab('stats')" id="tabStats" class="flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] bg-slate-50 hidden min-w-[85px]">📊 Reporte</button>
-            <button onclick="switchTab('adn')" id="tabADN" class="flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] bg-slate-50 hidden min-w-[65px]">🧬 ADN</button>
-            <button onclick="switchTab('subs')" id="tabSubs" class="flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] bg-slate-50 hidden min-w-[85px] text-orange-600">🔑 Subs</button>
-            <button onclick="switchTab('users')" id="tabUsers" class="flex-1 py-6 px-4 text-[9px] font-black uppercase rounded-[35px] bg-slate-50 hidden min-w-[85px] text-red-500">👥 Personal</button>
-        </nav>
-
-        <main class="flex-1 overflow-y-auto custom-scroll p-12 pb-96 text-left">
-            <div id="secCaja" class="fade-in space-y-10 text-left">
-                <input type="text" id="clientName" class="w-full p-8 border-4 border-slate-50 rounded-[55px] font-black uppercase text-2xl outline-none focus:border-blue-600 bg-slate-50 shadow-inner text-center text-left" placeholder="CLIENTE">
-                <div class="grid grid-cols-3 gap-4 text-left">
-                    <input type="text" id="cashAmtInput" class="p-8 border-4 border-slate-50 rounded-[55px] font-black uppercase text-sm outline-none focus:border-emerald-600 bg-emerald-50/30 text-center" placeholder="EFECTIVO">
-                    <input type="text" id="payCodeRefInput" class="p-8 border-4 border-slate-50 rounded-[55px] font-black uppercase text-sm outline-none focus:border-blue-600 bg-blue-50/30 text-center" placeholder="PAYCODE">
-                    <input type="text" id="creditAmtInput" class="p-8 border-4 border-slate-50 rounded-[55px] font-black uppercase text-sm outline-none focus:border-orange-600 bg-orange-50/30 text-center" placeholder="A CRÉDITO">
-                </div>
-                <input type="text" id="searchCaja" oninput="filterList('salesList', this.value)" class="search-bar text-center" placeholder="🔍 BUSCAR PRODUCTO...">
-                <div class="space-y-6" id="salesList"></div>
-            </div>
-
-            <div id="secStock" class="hidden fade-in space-y-14 text-left">
-                <div class="card-fanto p-12 space-y-8 border-t-[20px] border-emerald-500 text-left">
-                    <h3 class="text-2xl font-black uppercase italic text-emerald-800">Carga de Almacén</h3>
-                    <textarea id="bulkInput" rows="4" class="w-full p-8 border-4 border-slate-50 rounded-[45px] font-bold text-base outline-none focus:border-emerald-500 bg-slate-50 shadow-inner" placeholder="PRODUCTO, COSTO, VENTA, STOCK"></textarea>
-                    <button onclick="bulkProcessProds()" class="w-full bg-emerald-600 text-white py-10 rounded-[55px] font-black uppercase text-base shadow-2xl active:scale-95 text-center text-center">Registrar Lista Industrial</button>
-                </div>
-                <div class="card-fanto p-12 space-y-8 bg-slate-950 text-white shadow-2xl text-left">
-                    <input type="text" id="pn" placeholder="NOMBRE DEL PRODUCTO" class="w-full p-7 rounded-3xl text-slate-950 font-black uppercase text-xl text-center">
-                    <div class="grid grid-cols-3 gap-6 text-left">
-                        <div class="flex flex-col gap-2"><span class="text-[11px] font-black text-red-400 uppercase text-center">COSTO $</span><input type="number" id="pc" class="p-7 rounded-3xl text-slate-950 font-black text-2xl text-center"></div>
-                        <div class="flex flex-col gap-2"><span class="text-[11px] font-black text-green-400 uppercase text-center">VENTA $</span><input type="number" id="pp" class="p-7 rounded-3xl text-slate-950 font-black text-2xl text-center"></div>
-                        <div class="flex flex-col gap-2"><span class="text-[11px] font-black text-blue-400 uppercase text-center">STOCK</span><input type="number" id="ps" class="p-7 rounded-3xl text-slate-950 font-black text-2xl text-center"></div>
+            <div class="card-form">
+                <div class="input-group"><label>Cliente</label><input type="text" id="nameIn" placeholder="Nombre completo"></div>
+                <div class="input-group">
+                    <label>Deuda (Bs por defecto)</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="amtIn" style="flex:1" step="0.01">
+                        <select id="curIn">
+                            <option value="BS" selected>Bs</option>
+                            <option value="USD">$</option>
+                        </select>
                     </div>
-                    <button onclick="cProd()" class="w-full bg-blue-600 py-8 rounded-[60px] font-black uppercase text-base shadow-2xl active:scale-95 text-center text-center">Añadir Individual</button>
                 </div>
-                <div id="adminStockList" class="space-y-6 text-left"></div>
+                <div class="input-group"><label>FDE (Emisión)</label><input type="datetime-local" id="fdeIn"></div>
+                <div class="input-group"><label>FDP (Límite)</label><input type="datetime-local" id="fdpIn"></div>
+                <button class="btn-main" onclick="addRecord()">REGISTRAR VENTA</button>
             </div>
 
-            <div id="secFacturas" class="hidden fade-in space-y-12 text-left">
-                <div id="invoiceLogList" class="space-y-6 text-left"></div>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Cliente</th><th>Emisión (FDE)</th><th>Límite (FDP)</th><th>Deuda $</th><th>Deuda Bs</th><th>Acciones</th></tr></thead>
+                    <tbody id="tableBody"></tbody>
+                    <tfoot id="tableFoot"></tfoot>
+                </table>
             </div>
+        </div>
 
-            <div id="secCreditos" class="hidden fade-in space-y-12 text-left">
-                <div id="creditsLogList" class="space-y-6 text-left"></div>
+        <div id="sec-adn" class="seccion">
+            <div style="background:white; padding:40px; border-radius:15px; text-align:center; border: 2px dashed #ccc;">
+                <h2>Respaldo ADN Total</h2>
+                <p>Guarda tus deudas y usuarios en un archivo .txt</p><br>
+                <button class="btn-main" onclick="downloadData('MANUAL')">Descargar ADN (.txt)</button><br><br>
+                <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+                <button class="btn-main" style="background:#666" onclick="document.getElementById('importFile').click()">Importar ADN (.txt)</button>
             </div>
+        </div>
 
-            <div id="secAdn" class="hidden fade-in space-y-12 text-left">
-                <div class="card-fanto p-14 border-t-[25px] border-indigo-600 bg-indigo-50/20 shadow-2xl space-y-10 text-left">
-                    <h2 class="text-4xl font-black uppercase italic text-indigo-900 text-center">Gestión de ADN Maestro</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center text-left">
-                        <button onclick="generateSoulDNA()" class="w-full bg-indigo-700 text-white py-12 rounded-[60px] font-black uppercase text-sm shadow-2xl border-b-[10px] border-indigo-900 text-center">💾 DESCARGAR ADN (.txt)</button>
-                        <div id="importDnaContainer">
-                            <input type="file" id="dnaFileInput" accept=".txt" class="hidden" onchange="loadDnaFromFile(event)">
-                            <button onclick="document.getElementById('dnaFileInput').click()" class="w-full bg-emerald-600 text-white py-12 rounded-[60px] font-black uppercase text-sm shadow-2xl border-b-[10px] border-emerald-800 text-center">📂 CARGAR ADN DESDE EQUIPO</button>
+        <div id="sec-cuentas" class="seccion">
+            <div style="background:white; padding:30px; border-radius:15px; text-align:center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <div style="font-size: 3rem; margin-bottom: 10px;">👤</div>
+                <h2 id="userDisplay">Usuario: ---</h2>
+                <p id="rankDisplay">Jerarquía: ---</p>
+                <button class="btn-main" style="background:#333; margin-top:15px;" onclick="cerrarSesion()">CERRAR SESIÓN</button>
+
+                <div id="panelCreador" class="admin-panel" style="display:none;">
+                    <h3 style="color:var(--rojo-bdv); margin-bottom:15px;">🛠 Panel del Creador: Gestión de Usuarios</h3>
+                    <div class="card-form" style="box-shadow:none; padding:0; border:none; grid-template-columns: 1fr;">
+                        <div class="input-group"><label>Usuario</label><input type="text" id="newU"></div>
+                        <div class="input-group"><label>Contraseña</label><input type="text" id="newP"></div>
+                        <div class="input-group">
+                            <label>Jerarquía</label>
+                            <select id="newR">
+                                <option value="Cliente">Cliente</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
                         </div>
+                        <div class="input-group"><label>Licencia; Número de horas</label><input type="number" id="newH" placeholder="Horas activa"></div>
+                        <button class="btn-main" onclick="crearCuenta()">REGISTRAR CUENTA</button>
                     </div>
-                </div>
-            </div>
 
-            <div id="secSubs" class="hidden fade-in space-y-12 text-left">
-                <div class="card-fanto p-14 border-t-[25px] border-orange-500 bg-orange-50/20 shadow-2xl space-y-10 text-left">
-                    <h2 class="text-4xl font-black uppercase italic text-orange-950 text-center">SUSCRIPCIÓN DORADA</h2>
-                    <div class="bg-orange-50 p-10 rounded-[60px] border-4 border-orange-100 shadow-inner text-center">
-                        <h4 id="subStatusDisplay" class="text-5xl font-black text-orange-950 uppercase text-center">---</h4>
-                        <p id="subDaysLeftDisplay" class="text-sm font-black text-orange-400 mt-2 uppercase tracking-widest text-center"></p>
-                    </div>
-                    <div class="space-y-6">
-                        <input type="text" id="subPaymentDetails" class="w-full p-8 border-4 border-slate-50 rounded-[50px] font-black uppercase text-center focus:border-orange-500 outline-none shadow-inner" placeholder="PAGO $ - FECHA">
-                        <input type="number" id="subDaysInput" class="w-full p-8 border-4 border-slate-50 rounded-[50px] font-black text-center focus:border-orange-500 outline-none shadow-inner" placeholder="CONCEDER DÍAS">
-                        <button onclick="saveSubscription()" class="w-full bg-orange-600 text-white py-10 rounded-[60px] font-black uppercase text-base shadow-2xl border-b-[10px] border-orange-800 text-center">Activar Licencia Titán</button>
-                    </div>
+                    <h4 style="margin-top:25px; border-top:1px solid #eee; padding-top:15px;">Cuentas Registradas:</h4>
+                    <div id="listaUsuariosContainer"></div>
                 </div>
             </div>
-
-            <div id="secUsers" class="hidden fade-in space-y-12 text-left">
-                <div class="card-fanto p-12 border-t-[15px] border-blue-900 shadow-2xl space-y-8 text-left text-left">
-                    <input type="text" id="nu" placeholder="USUARIO" class="w-full p-7 border-4 border-slate-50 rounded-[45px] font-bold uppercase text-xl shadow-inner text-center text-left">
-                    <input type="text" id="np" placeholder="CONTRASEÑA" class="w-full p-7 border-4 border-slate-50 rounded-[45px] font-bold text-xl shadow-inner text-center text-left">
-                    <select id="nr" class="w-full p-7 border-4 border-slate-50 rounded-[45px] font-black text-sm uppercase bg-white">
-                        <option value="seller">VENDEDOR OPERATIVO</option>
-                        <option value="owner">DUEÑO (AUDITORÍA)</option>
-                        <option value="creator">CREADOR (CONTROL MAESTRO)</option>
-                    </select>
-                    <button onclick="cUser()" class="w-full bg-slate-950 text-white py-8 rounded-[60px] font-black uppercase text-base shadow-2xl text-center text-center">Vincular Personal</button>
-                </div>
-                <div id="userTableBody" class="space-y-6 text-left"></div>
-            </div>
-
-            <div id="secStats" class="hidden fade-in space-y-12 text-left">
-                <button onclick="generateSalesReport()" class="w-full bg-blue-900 text-white py-12 rounded-[75px] font-black uppercase text-xl shadow-2xl active:scale-95 border-b-[12px] border-blue-800 text-center text-center">📊 EJECUTAR AUDITORÍA GLOBAL</button>
-                <div class="bg-red-50 p-12 rounded-[80px] border-4 border-red-100 shadow-inner text-center text-left text-left">
-                    <button onclick="clearSalesHistory()" class="w-full bg-red-600 text-white py-10 rounded-[60px] font-black uppercase text-base shadow-2xl active:scale-95 border-b-[10px] border-red-800 text-center text-center">⚠️ RESETEAR BALANCE A CERO</button>
-                </div>
-            </div>
-        </main>
-
-        <div class="sticky-bottom flex justify-between items-center gap-14 text-left">
-            <div class="flex-1 space-y-3 text-left">
-                <div class="flex justify-between items-center text-left text-left text-left text-left"><span class="text-[15px] font-black text-slate-400 uppercase tracking-widest text-left">TOTAL USD</span><span id="totalUSD" class="text-7xl font-black tabular-nums text-slate-950 leading-none text-left">$0.00</span></div>
-                <div class="flex justify-between items-center text-left text-left text-left text-left text-left text-left"><span class="text-[15px] font-black text-slate-400 uppercase tracking-widest text-left text-left text-left text-left text-left text-left">TOTAL BS</span><span id="totalVES" class="text-4xl font-black tabular-nums text-green-700 font-black text-left text-left text-left text-left text-left">Bs 0.00</span></div>
-            </div>
-            <button onclick="generateInvoice()" class="bg-blue-600 text-white px-20 py-12 rounded-[70px] font-black uppercase text-xl shadow-2xl border-b-[12px] border-blue-800 active:scale-90 transition-all text-center">Facturar</button>
-        </div>
-    </div>
-
-    <div id="invoiceModal" class="fixed inset-0 bg-slate-950/98 hidden flex items-center justify-center p-6 z-[6500] backdrop-blur-3xl overflow-y-auto text-left text-left">
-        <div class="bg-white rounded-[100px] p-2 w-auto shadow-2xl relative border-[12px] border-white my-12 text-left">
-            <button onclick="document.getElementById('invoiceModal').classList.add('hidden')" class="absolute -top-10 -right-10 bg-red-600 text-white w-24 h-24 rounded-full font-black text-5xl shadow-2xl flex items-center justify-center border-[12px] border-white z-50">✕</button>
-            <div id="invoiceContent" class="overflow-y-auto text-left">
-                <div class="border-b-2 border-black pb-8 text-center relative text-left text-left text-left text-left">
-                    <img src="https://i.ibb.co/GfbpGws2/Picsart-26-02-24-20-03-41-830.jpg" alt="LOGO" class="logo-img-invoice text-center text-center">
-                    <p class="absolute top-0 right-0 font-black text-left text-left text-left">N° <span id="invNumber">0000</span></p>
-                    <h2 class="font-black uppercase tracking-widest text-lg text-center text-center text-center text-center">FANTO V1</h2>
-                    <p class="uppercase font-bold text-[10px] mt-1 text-center text-center text-center">Ticket de Venta Maestro</p>
-                </div>
-                <div class="py-8 space-y-1 uppercase font-bold border-b border-black text-left text-left text-left">
-                    <p class="flex justify-between text-left text-left"><span>FECHA:</span> <span id="invDate"></span></p>
-                    <p class="flex justify-between text-left text-left"><span>CLIENTE:</span> <span id="invClient"></span></p>
-                    <p class="flex justify-between text-left text-left text-left"><span>OPERADOR:</span> <span id="invSeller" class="text-slate-600"></span></p>
-                    <p id="invCashRow" class="flex justify-between hidden text-left text-left text-left"><span>EFECTIVO:</span> <span id="invCashVal"></span></p>
-                    <p id="invPayRow" class="flex justify-between hidden text-left text-left text-left"><span>PAYCODE:</span> <span id="invPayVal"></span></p>
-                    <p id="invCreditRow" class="flex justify-between hidden text-left text-orange-600 text-left text-left"><span>A CRÉDITO:</span> <span id="invCreditVal"></span></p>
-                </div>
-                <div id="invList" class="py-8 space-y-4 flex-1 text-left text-left text-left text-left"></div>
-                <div class="border-t border-black pt-8 font-black text-left text-left text-left text-left text-left">
-                    <div class="flex justify-between items-center mb-1 text-left text-left text-left text-left"><span class="uppercase">TOTAL USD:</span><span id="invTotalUSD"></span></div>
-                    <div class="flex justify-between items-center mb-8 text-slate-600 text-left text-left text-left text-left text-left text-left"><span class="uppercase font-bold text-left text-left text-left text-left text-left">TOTAL BS:</span><span id="invTotalVES"></span></div>
-                    <div class="text-center space-y-1 border-t border-dotted border-black pt-8 text-center text-center text-center text-center text-center">
-                        <p class="text-center text-center text-center text-center">¡MUCHAS GRACIAS POR SU COMPRA!</p>
-                        <p class="text-center text-center text-center text-center">VUELVA PRONTO</p>
-                    </div>
-                </div>
-            </div>
-            <div class="p-10 text-center text-left text-left text-left text-left text-left"><button onclick="confirmAndDownload()" class="w-full bg-blue-950 text-white py-8 rounded-[70px] font-black uppercase text-sm shadow-2xl active:scale-95 transition-all text-center text-center text-center text-center text-center">💾 GUARDAR FACTURA</button></div>
-        </div>
-    </div>
-
-    <div id="reportModal" class="fixed inset-0 bg-slate-950/98 hidden flex items-center justify-center p-8 z-[7000] backdrop-blur-3xl text-left text-left text-left">
-        <div class="bg-white rounded-[110px] p-16 w-full max-w-4xl shadow-2xl overflow-y-auto max-h-[92vh] border-t-[35px] border-blue-900 text-center text-left text-left text-left text-left text-left">
-            <div id="reportContent" class="space-y-10 text-left text-left text-left text-left">
-                <div class="text-center border-b-8 border-slate-50 pb-10 text-center text-left text-left text-left text-left text-left text-left text-left"><h2 class="text-6xl font-black italic text-blue-950 uppercase tracking-tighter leading-none text-center text-left text-center text-center text-center text-center text-center">ANÁLISIS ESTRATÉGICO</h2><p id="reportTimestamp" class="text-base font-black text-slate-400 mt-5 uppercase tracking-[0.6em] text-center text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left"></p></div>
-                <div class="bg-orange-50 p-10 rounded-[60px] border-4 border-orange-100 shadow-inner text-center text-left text-left text-left text-left text-left text-left text-left text-left">
-                    <p class="text-[11px] font-black uppercase text-orange-600 mb-2 text-center text-left text-left text-left text-left text-left">Créditos Pendientes</p>
-                    <h4 class="text-5xl font-black text-orange-950 text-center text-left text-left text-left text-left text-left" id="reportCreditUSD">$0.00</h4>
-                    <p class="text-xs font-bold text-orange-600 text-center text-left text-left text-left text-left text-left" id="reportCreditBS">Bs. 0.00</p>
-                </div>
-                <div class="grid grid-cols-2 gap-8 text-left text-left text-left text-left text-left text-left text-left">
-                    <div class="bg-emerald-50 p-10 rounded-[60px] border-4 border-emerald-100 shadow-inner text-left text-left text-left text-left text-left">
-                        <p class="text-[11px] font-black uppercase text-emerald-600 mb-2 text-left text-left text-left text-left">Efectivo Hoy</p>
-                        <h4 class="text-4xl font-black text-emerald-950 text-left text-left text-left text-left text-left" id="reportCashUSD">$0.00</h4>
-                        <p class="text-xs font-bold text-emerald-600 text-left text-left text-left text-left text-left text-left" id="reportCashBS"></p>
-                    </div>
-                    <div class="bg-blue-50 p-10 rounded-[60px] border-4 border-blue-100 shadow-inner text-left text-left text-left text-left text-left text-left">
-                        <p class="text-[11px] font-black uppercase text-blue-600 mb-2 text-left text-left text-left text-left">Paycode Hoy</p>
-                        <h4 class="text-4xl font-black text-blue-950 text-left text-left text-left text-left text-left text-left" id="reportPayUSD">$0.00</h4>
-                        <p class="text-xs font-bold text-blue-600 text-left text-left text-left text-left text-left text-left text-left" id="reportPayBS"></p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-12 text-center text-left text-left text-left text-left text-left">
-                    <div class="bg-blue-50 p-12 rounded-[75px] border-4 border-blue-100 shadow-inner text-left text-left text-left text-left text-left text-left text-left text-left"><p class="text-base font-black uppercase text-blue-500 mb-2 tracking-widest text-left text-left text-left text-left text-left text-left text-left text-left">Facturado Bruto</p><h4 class="text-6xl font-black text-blue-900 text-left text-left text-left text-left text-left" id="dailyUSD"></h4><p class="text-xl font-bold text-blue-500 text-left text-left text-left text-left text-left" id="dailyBS"></p></div>
-                    <div class="bg-emerald-50 p-12 rounded-[75px] border-4 border-emerald-100 shadow-inner text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left"><p class="text-base font-black uppercase text-emerald-600 mb-2 tracking-widest text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">Ganancia Neta</p><h4 class="text-6xl font-black text-emerald-900 text-left text-left text-left text-left text-left" id="dailyProfit"></h4><p class="text-xl font-bold text-emerald-600 text-left text-left text-left text-left text-left" id="dailyProfitBS"></p></div>
-                </div>
-            </div>
-            <div class="mt-10 grid grid-cols-2 gap-12 px-14 text-center text-left text-center text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left"><button onclick="downloadReportImage()" class="bg-blue-600 text-white py-10 rounded-[70px] font-black uppercase text-base shadow-2xl text-center text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">📥 Descargar Reporte</button><button onclick="document.getElementById('reportModal').classList.add('hidden')" class="bg-slate-100 text-slate-500 py-10 rounded-[70px] font-black uppercase text-base text-center text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left">Cerrar</button></div>
         </div>
     </div>
 
     <script>
-        const C = { STOCK: 'FAN_T_STK', USERS: 'FAN_T_USR', HISTORY: 'FAN_T_SAL', RATE: 'FAN_T_RAT', COUNTER: 'FAN_T_CNT', LICENSE: 'FAN_T_LIC' };
-        const getDB = (k, d) => JSON.parse(localStorage.getItem(k)) || d;
-        const saveDB = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-        // MAESTROS SOLDADOS
-        const MASTERS = { "CREADOR": { p: "CREATOR", r: "creator" }, "DUENO": { p: "PROPIETARIO", r: "owner" }, "ADMIN": { p: "FACTU", r: "creator" }, "VENTA": { p: "VENTA", r: "seller" } };
-
-        function coreRecovery() {
-            if (typeof MASTER_CORE_DNA !== 'undefined') {
-                if (getDB(C.STOCK, []).length === 0) saveDB(C.STOCK, MASTER_CORE_DNA.stock);
-                if (Object.keys(getDB(C.USERS, {})).length === 0) saveDB(C.USERS, MASTER_CORE_DNA.users);
-                if (getDB(C.HISTORY, []).length === 0) saveDB(C.HISTORY, MASTER_CORE_DNA.history);
-                if (!localStorage.getItem(C.COUNTER)) saveDB(C.COUNTER, MASTER_CORE_DNA.counter);
-                if (!localStorage.getItem(C.RATE)) saveDB(C.RATE, MASTER_CORE_DNA.rate);
-                if (!localStorage.getItem(C.LICENSE)) saveDB(C.LICENSE, MASTER_CORE_DNA.license);
-            }
-            if (!localStorage.getItem(C.COUNTER)) saveDB(C.COUNTER, 1);
-        }
-
-        function speak(text) { const msg = new SpeechSynthesisUtterance(text); msg.lang = 'es-ES'; msg.rate = 0.95; window.speechSynthesis.speak(msg); }
+        const DB_KEY = 'fanto_db_v10';
+        const USERS_KEY = 'fanto_users_v10';
         
-        function checkLicense() {
-            const lic = getDB(C.LICENSE, null);
-            const msgEl = document.getElementById('loginLicenseMsg');
-            if (!lic) { if(msgEl) msgEl.innerText = "SISTEMA LIBRE"; return true; }
-            const now = Date.now();
-            const daysLeft = Math.ceil((lic.expiryDate - now) / (1000 * 60 * 60 * 24));
-            if(msgEl) {
-                if (daysLeft > 0) { msgEl.innerText = `${daysLeft} DÍAS DE LICENCIA RESTANTES`; msgEl.className = "text-[10px] font-black text-orange-600 uppercase mt-8 tracking-widest text-center"; } 
-                else { msgEl.innerText = "EXPIRADA - SISTEMA SELLADO"; msgEl.className = "text-[10px] font-black text-red-600 uppercase mt-8 tracking-widest text-center"; }
+        let tasaBCV = 0, tasaPRO = 0, tasaActiva = 0;
+        let modoTasa = 'BCV';
+        let currentUser = null;
+
+        // --- ACCESO Y SEGURIDAD ---
+        function validarAcceso() {
+            const u = document.getElementById('userLogin').value;
+            const p = document.getElementById('passLogin').value;
+            const usuarios = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+
+            if(u === 'hjkl' && p === 'hjkl') {
+                iniciarSesion({ nombre: 'hjkl', jerarquia: 'Creador' });
+                return;
             }
-            if (now > lic.expiryDate && sessionStorage.getItem('r') !== 'creator') {
-                document.getElementById('mainApp').classList.add('hidden');
-                document.getElementById('lockScreen').classList.remove('hidden');
-                return false;
-            }
-            return true;
-        }
 
-        function handleLogin() {
-            coreRecovery();
-            const u = document.getElementById('username').value.trim().toUpperCase(), p = document.getElementById('password').value.trim().toUpperCase();
-            const dbU = { ...getDB(C.USERS, {}), ...MASTERS };
-            if(dbU[u] && dbU[u].p.toUpperCase() === p) { 
-                sessionStorage.setItem('u',u); sessionStorage.setItem('r',dbU[u].r); 
-                if (checkLicense()) { startApp(); announceFullAudit(); }
-            } else { alert("ERROR DE ACCESO."); }
-        }
-
-        function startApp() {
-            const r = sessionStorage.getItem('r');
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = sessionStorage.getItem('u');
-            document.getElementById('roleDisplay').innerText = r.toUpperCase();
-            if(r === 'seller') { document.getElementById('btnAdnSeller').classList.remove('hidden'); }
-            if(r === 'creator' || r === 'owner') { 
-                document.getElementById('tabStock').classList.remove('hidden'); document.getElementById('tabStats').classList.remove('hidden'); 
-                document.getElementById('tabADN').classList.remove('hidden'); document.getElementById('tabFacturas').classList.remove('hidden');
-                document.getElementById('tabCreditos').classList.remove('hidden');
-                if(r === 'creator') { document.getElementById('tabUsers').classList.remove('hidden'); document.getElementById('tabSubs').classList.remove('hidden'); }
-            }
-            renderSubscription(); refreshAppState();
-        }
-
-        function saveSubscription() {
-            const details = document.getElementById('subPaymentDetails').value.trim();
-            const days = parseInt(document.getElementById('subDaysInput').value);
-            if (!details || isNaN(days)) return alert("Datos incompletos.");
-            const lic = { paymentDetails: details, expiryDate: Date.now() + (days * 24 * 60 * 60 * 1000), totalDays: days };
-            saveDB(C.LICENSE, lic); speak("Licencia renovada."); renderSubscription();
-        }
-
-        function renderSubscription() {
-            const lic = getDB(C.LICENSE, null);
-            if (!lic) { document.getElementById('subStatusDisplay').innerText = "SIN LICENCIA"; return; }
-            const daysLeft = Math.ceil((lic.expiryDate - Date.now()) / (1000 * 60 * 60 * 24));
-            document.getElementById('subStatusDisplay').innerText = daysLeft > 0 ? "LICENCIA ACTIVA" : "EXPIRADA";
-            document.getElementById('subDaysLeftDisplay').innerText = daysLeft > 0 ? `${daysLeft} DÍAS RESTANTES` : "BLOQUEO ACTIVO";
-        }
-
-        function switchTab(t) {
-            ['secCaja','secStock','secUsers','secStats','secAdn','secFacturas','secCreditos','secSubs'].forEach(s => document.getElementById(s).classList.add('hidden'));
-            ['tabCaja','tabStock','tabUsers','tabStats','tabADN','tabFacturas','tabCreditos','tabSubs'].forEach(s => document.getElementById(s).classList.remove('tab-active','bg-slate-900','text-white'));
-            document.getElementById('sec'+t.charAt(0).toUpperCase()+t.slice(1)).classList.remove('hidden');
-            document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('tab-active','bg-slate-900','text-white');
-            if(t === 'facturas') renderInvoices(); if(t === 'creditos') renderCredits(); if(t === 'stock') renderStockAdmin();
-            if(t === 'adn' && sessionStorage.getItem('r') === 'seller') { document.getElementById('importDnaContainer').classList.add('hidden'); }
-            else if(t === 'adn') { document.getElementById('importDnaContainer').classList.remove('hidden'); }
-        }
-
-        function filterList(id, v) { const val = v.toUpperCase(); document.querySelectorAll(`#${id} > div`).forEach(c => { const n = (c.querySelector('p') || c.querySelector('.name-admin')).innerText.toUpperCase(); c.style.display = n.includes(val) ? 'flex' : 'none'; }); }
-
-        function refreshAppState(visual = false) {
-            const rate = parseFloat(getDB(C.RATE, 38.30));
-            document.getElementById('headerRateValue').innerText = `Bs. ${rate.toFixed(2)}`;
-            renderSales(); renderUserAdmin(); calculate();
-        }
-
-        function renderSales() {
-            const p = getDB(C.STOCK, []);
-            document.getElementById('salesList').innerHTML = p.map(x => `<div class="card-fanto p-10 flex justify-between items-center ${x.stock<=0?'opacity-30':''}" data-id="${x.id}">
-                    <div class="flex items-center gap-10"><input type="checkbox" class="p-check w-14 h-14 rounded-2xl accent-blue-600" onchange="calculate()" ${x.stock<=0?'disabled':''}>
-                    <div class="text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left"><p class="font-black uppercase text-3xl text-slate-950 text-left">${x.name}</p><p class="text-[14px] font-black text-slate-400 mt-4 uppercase text-left">Stock: ${x.stock}</p></div></div>
-                    <div class="text-right flex items-center gap-12 text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left text-left"><span class="text-blue-600 font-black text-5xl">$${parseFloat(x.price).toFixed(2)}</span>
-                    <input type="number" class="p-qty w-24 p-5 bg-slate-50 border-4 rounded-3xl text-center font-black text-3xl" value="1" min="1" max="${x.stock}" oninput="calculate()" ${x.stock<=0?'disabled':''}>
-                    <div class="w-44 font-black text-5xl tabular-nums p-sub text-slate-950 text-right">$0.00</div></div></div>`).join('');
-        }
-
-        function calculate() {
-            let t = 0; const r = parseFloat(getDB(C.RATE, 38.30)), pDB = getDB(C.STOCK, []);
-            document.querySelectorAll('#salesList > div').forEach(card => {
-                const chk = card.querySelector('.p-check').checked, id = card.getAttribute('data-id'), p = pDB.find(x => x.id == id), subEl = card.querySelector('.p-sub');
-                if(chk && p) { const sub = (parseFloat(card.querySelector('.p-qty').value) || 1) * p.price; subEl.innerText = `$${sub.toFixed(2)}`; t += sub; } else subEl.innerText = "$0.00";
-            });
-            document.getElementById('totalUSD').innerText = `$${t.toFixed(2)}`;
-            document.getElementById('totalVES').innerText = `Bs ${(t * r).toFixed(2)}`;
-        }
-
-        // --- PERSONAL ---
-        function cUser() { 
-            const n = document.getElementById('nu').value.toUpperCase(), p = document.getElementById('np').value, r = document.getElementById('nr').value; 
-            if(n && p) { const d = getDB(C.USERS, {}); d[n] = {p, r}; saveDB(C.USERS, d); renderUserAdmin(); alert("OK"); } 
-        }
-
-        function renderUserAdmin() {
-            const mastersList = Object.entries(MASTERS).map(([k,v]) => `<div class="card-fanto p-8 flex justify-between items-center text-left bg-slate-50 border-blue-200 border-2"><div class="font-black uppercase text-2xl text-slate-900 text-left text-left">${k}<br><span class="text-[10px] uppercase bg-blue-100 px-3 py-1 rounded-md text-blue-600 text-left">MASTER CORE</span></div><div class="text-blue-500 font-black">MASTER</div></div>`).join('');
-            const customList = Object.entries(getDB(C.USERS, {})).map(([k,v]) => `<div class="card-fanto p-8 flex justify-between items-center text-left"><div class="font-black uppercase text-2xl text-slate-900 text-left text-left text-left text-left">${k}<br><span class="text-[10px] uppercase bg-slate-100 px-3 py-1 rounded-md text-slate-500 text-left text-left">${v.r}</span></div><button onclick="delU('${k}')" class="text-red-500 font-black text-5xl">✕</button></div>`).join('');
-            document.getElementById('userTableBody').innerHTML = mastersList + customList;
-        }
-        function delU(k) { if(confirm("¿Borrar?")){ const d=getDB(C.USERS,{}); delete d[k]; saveDB(C.USERS,d); renderUserAdmin(); } }
-
-        function renderStockAdmin() {
-            document.getElementById('adminStockList').innerHTML = getDB(C.STOCK, []).map(x => `<div class="card-fanto p-8 flex justify-between items-center shadow-lg"><div class="font-black text-slate-900 uppercase w-1/3 text-left text-left text-left text-left text-left text-left text-left text-left text-left">${x.name}</div><div class="flex gap-4"><input type="number" id="cost-${x.id}" value="${x.cost}" class="stock-input text-red-500"><input type="number" id="price-${x.id}" value="${x.price}" class="stock-input text-blue-600"><input type="number" id="stock-${x.id}" value="${x.stock}" class="stock-input text-slate-900 text-left text-left text-left text-left"></div><div class="flex gap-4"><button onclick="updateProd(${x.id})" class="p-5 bg-green-50 text-green-600 rounded-[25px] text-4xl">💾</button><button onclick="delP(${x.id})" class="p-5 bg-red-50 text-red-500 rounded-[25px] text-4xl text-center">✕</button></div></div>`).join('');
-        }
-
-        function updateProd(id) { const p = getDB(C.STOCK, []), i = p.findIndex(x => x.id == id); p[i].cost = parseFloat(document.getElementById(`cost-${id}`).value); p[i].price = parseFloat(document.getElementById(`price-${id}`).value); p[i].stock = parseInt(document.getElementById(`stock-${id}`).value); saveDB(C.STOCK, p); refreshAppState(true); }
-        function delP(id) { if(confirm("¿Borrar?")){ saveDB(C.STOCK, getDB(C.STOCK,[]).filter(x=>x.id!=id)); renderStockAdmin(); } }
-
-        function cProd() {
-            const n = document.getElementById('pn').value.toUpperCase(), c = parseFloat(document.getElementById('pc').value)||0, p = parseFloat(document.getElementById('pp').value), s = parseInt(document.getElementById('ps').value);
-            if(n && !isNaN(p)) { let d = getDB(C.STOCK, []); d.push({ id: Date.now(), name: n, cost: c, price: p, stock: s||0 }); saveDB(C.STOCK, d); renderStockAdmin(); alert("OK"); }
-        }
-
-        function renderInvoices() {
-            const h = [...getDB(C.HISTORY, [])].reverse();
-            const rate = parseFloat(getDB(C.RATE, 38.30));
-            document.getElementById('invoiceLogList').innerHTML = h.map((s, idx) => {
-                const realIdx = getDB(C.HISTORY, []).length - 1 - idx;
-                return `<div class="card-fanto p-10 flex justify-between items-center shadow-lg border-l-[15px] border-blue-500">
-                    <div class="text-left font-black uppercase space-y-2"><p class="text-2xl text-slate-950">F-${String(s.folio).padStart(4,'0')} — ${s.client || "S/N"}</p>
-                        <p class="text-xl text-blue-600">$${parseFloat(s.usd).toFixed(2)} — Bs. ${(parseFloat(s.usd)*rate).toFixed(2)}</p>
-                        ${s.isCredit && !s.paid ? '<span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px]">DEUDA ACTIVA</span>' : ''}</div>
-                    <button onclick="deleteInvoice(${realIdx})" class="p-6 bg-red-50 text-red-600 rounded-3xl text-4xl font-black">✕</button></div>`;
-            }).join('');
-        }
-
-        function renderCredits() {
-            const h = [...getDB(C.HISTORY, [])].filter(s => s.isCredit && !s.paid).reverse();
-            if(h.length === 0) { document.getElementById('creditsLogList').innerHTML = '<p class="text-center text-slate-400 font-black py-20 uppercase">Sin deudas</p>'; return; }
-            document.getElementById('creditsLogList').innerHTML = h.map((s) => `<div class="card-fanto p-12 flex justify-between items-center shadow-xl border-l-[20px] border-orange-500">
-                    <div class="text-left font-black uppercase space-y-2"><p class="text-3xl text-slate-950">Folio: ${String(s.folio).padStart(4,'0')}</p><p class="text-2xl text-slate-400">${s.client}</p><p class="text-2xl text-orange-600">DEUDA: $${parseFloat(s.usd).toFixed(2)}</p></div>
-                    <button onclick="payCredit(${s.folio})" class="bg-emerald-600 text-white px-12 py-8 rounded-[50px] font-black uppercase text-sm active:scale-95">Cobrar</button></div>`).join('');
-        }
-
-        function payCredit(folio) {
-            const method = prompt("LÍQUIDACIÓN:\n1 - EFECTIVO\n2 - PAYCODE", "1");
-            if (method !== "1" && method !== "2") return;
-            const h = getDB(C.HISTORY, []); const idx = h.findIndex(s => s.folio === folio);
-            if(idx !== -1) { h[idx].paid = true; h[idx].paidTimestamp = Date.now(); h[idx].isCash = (method === "1"); h[idx].isPaycode = (method === "2"); h[idx].isCredit = false; saveDB(C.HISTORY, h); speak("Deuda cobrada."); renderCredits(); refreshAppState(); }
-        }
-
-        function deleteInvoice(idx) {
-            if(confirm("⚠️ ¿Eliminar factura y devolver stock?")) {
-                const h = getDB(C.HISTORY, []), pDB = getDB(C.STOCK, []); const inv = h[idx];
-                if(inv.items) { inv.items.forEach(item => { const product = pDB.find(p => p.name === item.n); if(product) product.stock += item.q; }); }
-                h.splice(idx, 1); saveDB(C.HISTORY, h); saveDB(C.STOCK, pDB); renderInvoices(); refreshAppState();
+            const user = usuarios.find(user => user.nombre === u && user.pass === p);
+            if(user) {
+                const ahora = new Date().getTime();
+                const limite = user.creado + (user.horas * 3600000);
+                if(ahora > limite) return alert("Licencia expirada.");
+                iniciarSesion(user);
+            } else {
+                document.getElementById('errorLogin').style.display = 'block';
             }
         }
 
-        function generateSoulDNA() {
-            const soul = { stock: getDB(C.STOCK, []), users: getDB(C.USERS, {}), history: getDB(C.HISTORY, []), counter: getDB(C.COUNTER, 1), rate: getDB(C.RATE, 38.30), license: getDB(C.LICENSE, null) };
-            const code = `const MASTER_CORE_DNA = ${JSON.stringify(soul)};`;
-            const blob = new Blob([code], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `ADN_MASTER_FANTO.txt`; a.click();
-            window.URL.revokeObjectURL(url);
+        async function iniciarSesion(user) {
+            currentUser = user;
+            sessionStorage.setItem('fanto_session', JSON.stringify(user));
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('userDisplay').innerText = `Usuario: ${user.nombre}`;
+            document.getElementById('rankDisplay').innerText = `Jerarquía: ${user.jerarquia}`;
+            if(user.nombre === 'hjkl') {
+                document.getElementById('panelCreador').style.display = 'block';
+                renderUsuarios();
+            }
+            await fetchRates();
+            switchRate('BCV');
+            hablar(`Bienvenido ${user.nombre}. Sistema listo.`);
         }
 
-        function loadDnaFromFile(event) {
-            const file = event.target.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const content = e.target.result;
-                    const jsonPart = content.substring(content.indexOf('{'), content.lastIndexOf('}') + 1);
-                    const imported = JSON.parse(jsonPart);
-                    if(imported.stock) { saveDB(C.STOCK, imported.stock); saveDB(C.USERS, imported.users); saveDB(C.HISTORY, imported.history || []); saveDB(C.COUNTER, imported.counter || 1); saveDB(C.RATE, imported.rate || 38.30); saveDB(C.LICENSE, imported.license || null); location.reload(); }
-                } catch(err) { alert("Error de ADN."); }
-            }; reader.readAsText(file);
+        function cerrarSesion() { sessionStorage.removeItem('fanto_session'); location.reload(); }
+
+        // --- GESTIÓN DE CUENTAS ---
+        function crearCuenta() {
+            const n = document.getElementById('newU').value;
+            const p = document.getElementById('newP').value;
+            const r = document.getElementById('newR').value;
+            const h = parseInt(document.getElementById('newH').value);
+            if(!n || !p || isNaN(h)) return alert("Faltan datos.");
+
+            let usuarios = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+            usuarios.push({ nombre: n, pass: p, jerarquia: r, horas: h, creado: new Date().getTime() });
+            localStorage.setItem(USERS_KEY, JSON.stringify(usuarios));
+            renderUsuarios();
+            ["newU", "newP", "newH"].forEach(id => document.getElementById(id).value = "");
         }
 
-        function bulkProcessProds() {
-            const input = document.getElementById('bulkInput').value; if(!input.trim()) return alert("Vacío.");
-            const lines = input.split('\n'); let d = getDB(C.STOCK, []); 
-            lines.forEach(line => {
-                try {
-                    const parts = line.split(',').map(s => s.trim());
-                    if(parts.length >= 3) {
-                        const stock = parseInt(parts.pop()), price = parseFloat(parts.pop()), nameAndCost = parts.join(','), lastSpace = nameAndCost.lastIndexOf(' ');
-                        const name = nameAndCost.substring(0, lastSpace).trim().toUpperCase(), cost = parseFloat(nameAndCost.substring(lastSpace).trim());
-                        if(name && !isNaN(price)) { d.push({ id: Date.now() + Math.random(), name, cost: cost || 0, price, stock: stock || 0 }); }
-                    }
-                } catch(e) { }
-            });
-            saveDB(C.STOCK, d); renderStockAdmin(); document.getElementById('bulkInput').value = '';
+        function renderUsuarios() {
+            const container = document.getElementById('listaUsuariosContainer');
+            const usuarios = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+            container.innerHTML = usuarios.map((u, i) => `
+                <div class="user-list-item">
+                    <div><strong>${u.nombre}</strong> (${u.jerarquia})<br><small>Licencia: ${u.horas}h</small></div>
+                    <button onclick="eliminarUsuario(${i})" style="color:red; border:none; background:none; cursor:pointer;">BORRAR</button>
+                </div>
+            `).join('');
         }
 
-        function generateInvoice() {
-            const usd = document.getElementById('totalUSD').innerText; if(usd === "$0.00") return alert("Caja vacía");
-            const cV = document.getElementById('cashAmtInput').value.trim(), pV = document.getElementById('payCodeRefInput').value.trim(), crV = document.getElementById('creditAmtInput').value.trim();
-            if(!cV && !pV && !crV) return alert("Falta método de pago.");
-            const folio = String(getDB(C.COUNTER, 1)).padStart(4, '0');
-            document.getElementById('invNumber').innerText = folio;
-            document.getElementById('invClient').innerText = document.getElementById('clientName').value || "CONSUMIDOR FINAL";
-            document.getElementById('invSeller').innerText = sessionStorage.getItem('u');
-            document.getElementById('invDate').innerText = new Date().toLocaleString();
-            document.getElementById('invTotalUSD').innerText = usd;
-            document.getElementById('invTotalVES').innerText = document.getElementById('totalVES').innerText;
-            if(cV) { document.getElementById('invCashRow').classList.remove('hidden'); document.getElementById('invCashVal').innerText = cV.toUpperCase(); } else document.getElementById('invCashRow').classList.add('hidden');
-            if(pV) { document.getElementById('invPayRow').classList.remove('hidden'); document.getElementById('invPayVal').innerText = pV.toUpperCase(); } else document.getElementById('invPayRow').classList.add('hidden');
-            if(crV) { document.getElementById('invCreditRow').classList.remove('hidden'); document.getElementById('invCreditVal').innerText = crV.toUpperCase(); } else document.getElementById('invCreditRow').classList.add('hidden');
-            let l = ""; const pDB = getDB(C.STOCK, []);
-            document.querySelectorAll('#salesList .p-check:checked').forEach(check => { const card = check.closest('[data-id]'), p = pDB.find(x => x.id == card.getAttribute('data-id')); l += `<div class="flex justify-between border-b border-black border-dotted pb-2 text-left"><span>${p.name} (x${card.querySelector('.p-qty').value})</span><span>${card.querySelector('.p-sub').innerText}</span></div>`; });
-            document.getElementById('invList').innerHTML = l; document.getElementById('invoiceModal').classList.remove('hidden');
+        function eliminarUsuario(i) {
+            if(confirm("¿Eliminar cuenta?")) {
+                let usuarios = JSON.parse(localStorage.getItem(USERS_KEY));
+                usuarios.splice(i, 1);
+                localStorage.setItem(USERS_KEY, JSON.stringify(usuarios));
+                renderUsuarios();
+            }
         }
 
-        async function confirmAndDownload() {
-            const pDB = getDB(C.STOCK, []), sold = [];
-            document.querySelectorAll('#salesList .p-check:checked').forEach(check => { const card = check.closest('[data-id]'), q = parseFloat(card.querySelector('.p-qty').value), idx = pDB.findIndex(x => x.id == card.getAttribute('data-id')); if(idx !== -1) { pDB[idx].stock -= q; sold.push({ n: pDB[idx].name, q: q }); } });
-            const num = getDB(C.COUNTER, 1), h = getDB(C.HISTORY, []); 
-            const tUSDVal = parseFloat(document.getElementById('totalUSD').innerText.replace('$','')) || 0;
-            const cV = document.getElementById('cashAmtInput').value.trim(), pV = document.getElementById('payCodeRefInput').value.trim(), crV = document.getElementById('creditAmtInput').value.trim();
-            h.push({ timestamp: Date.now(), usd: tUSDVal, client: document.getElementById('invClient').innerText, items: sold, seller: sessionStorage.getItem('u'), folio: num, isCash: cV !== "", isPaycode: pV !== "", isCredit: crV !== "", paid: crV === "" });
-            saveDB(C.STOCK, pDB); saveDB(C.HISTORY, h); saveDB(C.COUNTER, num + 1);
-            const c = await html2canvas(document.getElementById('invoiceContent'), { scale: 3 });
-            const l = document.createElement('a'); l.download=`Ticket_${num}.png`; l.href=c.toDataURL(); l.click();
-            ['cashAmtInput','payCodeRefInput','creditAmtInput','clientName'].forEach(i=>document.getElementById(i).value='');
-            refreshAppState(true); document.getElementById('invoiceModal').classList.add('hidden');
-        }
-
-        // --- MOTOR DE AUDITORÍA RECONSTRUIDO ---
-        function generateSalesReport() {
+        // --- LÓGICA DE TASAS Y COBRANZAS ---
+        async function fetchRates() {
             try {
-                const h = getDB(C.HISTORY, []); if(!h.length) return alert("Sin ventas.");
-                const now = new Date(), today = now.toDateString(), rate = parseFloat(getDB(C.RATE, 38.30));
-                let dUSD = 0, dProf = 0, cT = 0, pT = 0, crT = 0;
-                const pRef = getDB(C.STOCK, []);
-                h.forEach(s => {
-                    const sUSD = parseFloat(s.usd) || 0;
-                    if(s.isCredit && !s.paid) { crT += sUSD; }
-                    else {
-                        const dateToCheck = s.paidTimestamp ? new Date(s.paidTimestamp) : new Date(s.timestamp);
-                        if(dateToCheck.toDateString() === today) {
-                            dUSD += sUSD; if(s.isCash) cT += sUSD; else if(s.isPaycode) pT += sUSD; else cT += sUSD;
-                            if(s.items) s.items.forEach(it => { const r = pRef.find(p=>p.name===it.n); if(r) dProf += (parseFloat(r.price) - parseFloat(r.cost)) * it.q; });
-                        }
-                    }
-                });
-                document.getElementById('reportCreditUSD').innerText = `$${crT.toFixed(2)}`;
-                document.getElementById('reportCreditBS').innerText = `Bs. ${(crT * rate).toFixed(2)}`;
-                document.getElementById('reportCashUSD').innerText = `$${cT.toFixed(2)}`;
-                document.getElementById('reportCashBS').innerText = `Bs. ${(cT * rate).toFixed(2)}`;
-                document.getElementById('reportPayUSD').innerText = `$${pT.toFixed(2)}`;
-                document.getElementById('reportPayBS').innerText = `Bs. ${(pT * rate).toFixed(2)}`;
-                document.getElementById('dailyUSD').innerText = `$${dUSD.toFixed(2)}`;
-                document.getElementById('dailyBS').innerText = `Bs. ${(dUSD * rate).toFixed(2)}`;
-                document.getElementById('dailyProfit').innerText = `$${dProf.toFixed(2)}`;
-                document.getElementById('dailyProfitBS').innerText = `Bs. ${(dProf * rate).toFixed(2)}`;
-                document.getElementById('reportTimestamp').innerText = now.toLocaleString();
-                document.getElementById('reportModal').classList.remove('hidden');
-            } catch (err) { alert("Error de cálculo."); }
+                const resB = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+                const dataB = await resB.json();
+                tasaBCV = dataB.promedio;
+                document.getElementById('valBCV').innerText = `Bs. ${tasaBCV.toFixed(2)}`;
+
+                const resP = await fetch('https://ve.dolarapi.com/v1/dolares/promedio');
+                const dataP = await resP.json();
+                tasaPRO = dataP.promedio;
+                document.getElementById('valPRO').innerText = `Bs. ${tasaPRO.toFixed(2)}`;
+
+                tasaActiva = tasaBCV;
+                render();
+            } catch (e) { render(); }
         }
 
-        function clearSalesHistory() { if(confirm("⚠️ ¿Resetear?") && confirm("¿Confirmas?")) { saveDB(C.HISTORY, []); saveDB(C.COUNTER, 1); refreshAppState(true); } }
-        async function downloadReportImage() { const c = await html2canvas(document.getElementById('reportContent'), { scale: 3 }); const l = document.createElement('a'); l.download=`Auditoria.png`; l.href=c.toDataURL(); l.click(); }
-        function logout() { sessionStorage.clear(); location.reload(); }
-        function manualRatePrompt() { const v = prompt("Tasa:", getDB(C.RATE, 38.30)); if(v) { saveDB(C.RATE, parseFloat(v)); refreshAppState(true); } }
-        async function syncBCV() { try { const r = await fetch('https://ve.dolarapi.com/v1/dolares/oficial'), d = await r.json(); if(d.promedio) { saveDB(C.RATE, d.promedio); refreshAppState(true); } } catch(e) {} }
+        function switchRate(modo) {
+            modoTasa = modo;
+            tasaActiva = (modo === 'BCV') ? tasaBCV : tasaPRO;
+            document.getElementById('cardBCV').classList.toggle('active-rate', modo === 'BCV');
+            document.getElementById('cardPRO').classList.toggle('active-rate', modo === 'PRO');
+            render();
+        }
 
-        window.onload = () => { coreRecovery(); checkLicense(); };
+        function render() {
+            const body = document.getElementById('tableBody');
+            const foot = document.getElementById('tableFoot');
+            body.innerHTML = "";
+            let db = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+            const ahora = new Date();
 
-        const MASTER_CORE_DNA = {"stock":[],"users":{"VENTA":{"p":"VENTA","r":"seller"},"ADMIN":{"p":"ADMIN","r":"seller"},"DUEÑO":{"p":"DUEÑO","r":"owner"}},"history":[],"counter":1,"rate":38.30,"license":null};
+            // ORDENAMIENTO POR FECHA LÍMITE (FDP)
+            db.sort((a, b) => {
+                if (!a.fdp) return 1;
+                if (!b.fdp) return -1;
+                return new Date(a.fdp) - new Date(b.fdp);
+            });
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+
+            let sUSD = 0, sBS = 0;
+
+            db.forEach((item, i) => {
+                const bsCalc = (item.usd * tasaActiva).toFixed(2);
+                sUSD += parseFloat(item.usd); 
+                sBS += parseFloat(bsCalc);
+                
+                const tr = document.createElement('tr');
+                
+                // INDICADOR VISUAL DE VENCIMIENTO
+                const fechaLimite = item.fdp ? new Date(item.fdp) : null;
+                if (fechaLimite && fechaLimite < ahora) {
+                    tr.classList.add('vencido');
+                }
+
+                tr.onclick = function() {
+                    document.querySelectorAll('tr').forEach(r => r.classList.remove('selected-row'));
+                    this.classList.add('selected-row');
+                    hablar(`${item.name} debe ${item.usd.replace('.',',')} dólares y ${bsCalc.replace('.',',')} bolívares.`);
+                };
+                
+                tr.innerHTML = `
+                    <td class="editable-cell" onclick="editRecord(event, ${i}, 'name')"><strong>${item.name}</strong> ✏️</td>
+                    <td class="editable-cell" onclick="editRecord(event, ${i}, 'fde')">${item.fde ? item.fde.replace("T", " ") : '---'} ✏️</td>
+                    <td class="editable-cell" onclick="editRecord(event, ${i}, 'fdp')">${item.fdp ? item.fdp.replace("T", " ") : '---'} ✏️</td>
+                    <td class="editable-cell" onclick="editRecord(event, ${i}, 'usd')">$${item.usd} ✏️</td>
+                    <td class="editable-cell" onclick="editRecord(event, ${i}, 'bs')">Bs. ${bsCalc} ✏️</td>
+                    <td><button onclick="del(event, ${i})" style="border:none; background:none; cursor:pointer; color:red; font-size:1.2rem; font-weight:bold;">×</button></td>
+                `;
+                body.appendChild(tr);
+            });
+            foot.innerHTML = `<tr class="fila-total"><td colspan="3">TOTAL (${modoTasa})</td><td>$${sUSD.toFixed(2)}</td><td>Bs. ${sBS.toFixed(2)}</td><td></td></tr>`;
+        }
+
+        function addRecord() {
+            const n = document.getElementById('nameIn').value;
+            const a = parseFloat(document.getElementById('amtIn').value);
+            if(!n || isNaN(a)) return alert("Datos incompletos.");
+            
+            // Si el selector está en BS (predeterminado), convierte a USD para la DB
+            let usd = (document.getElementById('curIn').value === "USD") ? a : a / tasaActiva;
+            let db = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+            db.push({ name: n, usd: usd.toFixed(2), fde: document.getElementById('fdeIn').value, fdp: document.getElementById('fdpIn').value });
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+            render(); 
+            clearForm();
+        }
+
+        function editRecord(event, i, field) {
+            event.stopPropagation();
+            let db = JSON.parse(localStorage.getItem(DB_KEY));
+            let item = db[i];
+            let newVal;
+
+            if (field === 'name') newVal = prompt("Nombre del Cliente:", item.name);
+            else if (field === 'fde') newVal = prompt("Fecha Emisión (YYYY-MM-DDTHH:MM):", item.fde);
+            else if (field === 'fdp') newVal = prompt("Fecha Límite (YYYY-MM-DDTHH:MM):", item.fdp);
+            else if (field === 'usd') newVal = prompt("Monto en Dólares ($):", item.usd);
+            else if (field === 'bs') {
+                let currentBs = (item.usd * tasaActiva).toFixed(2);
+                newVal = prompt(`Monto en Bolívares (Tasa ${modoTasa}: ${tasaActiva}):`, currentBs);
+                if (newVal !== null && !isNaN(parseFloat(newVal))) {
+                    item.usd = (parseFloat(newVal) / tasaActiva).toFixed(2);
+                }
+                newVal = null; // Evita el procesamiento doble abajo
+            }
+
+            if (newVal !== null && field !== 'bs') {
+                if(field === 'usd') item.usd = parseFloat(newVal).toFixed(2);
+                else item[field] = newVal;
+            }
+            
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+            render();
+        }
+
+        function downloadData(t) {
+            const soul = { deudas: JSON.parse(localStorage.getItem(DB_KEY) || "[]"), usuarios: JSON.parse(localStorage.getItem(USERS_KEY) || "[]") };
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(soul)], { type: 'text/plain' }));
+            a.download = `ADN_FANTO_${t}.txt`;
+            a.click();
+        }
+
+        function importData(e) { 
+            const r = new FileReader(); 
+            r.onload = (ev) => { 
+                try {
+                    const soul = JSON.parse(ev.target.result);
+                    if(soul.deudas) localStorage.setItem(DB_KEY, JSON.stringify(soul.deudas));
+                    if(soul.usuarios) localStorage.setItem(USERS_KEY, JSON.stringify(soul.usuarios));
+                    render(); renderUsuarios(); alert("ADN Restaurado."); showTab('cobros'); 
+                } catch(e) { alert("Error."); }
+            }; 
+            r.readAsText(e.target.files[0]); 
+        }
+
+        function manualEdit(event, modo) {
+            event.stopPropagation();
+            const n = prompt(`Nueva tasa ${modo}:`, modo === 'BCV' ? tasaBCV : tasaPRO);
+            if(n && !isNaN(n)) {
+                if(modo === 'BCV') tasaBCV = parseFloat(n);
+                else tasaPRO = parseFloat(n);
+                switchRate(modo);
+            }
+        }
+
+        function hablar(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'es-ES'; window.speechSynthesis.speak(m); }
+        function showTab(id) { document.querySelectorAll('.seccion').forEach(s => s.classList.remove('active')); document.querySelectorAll('nav a').forEach(a => a.classList.remove('active')); document.getElementById('sec-' + id).classList.add('active'); document.getElementById('tab-' + id).classList.add('active'); }
+        function clearForm() { ["nameIn", "amtIn", "fdeIn", "fdpIn"].forEach(id => document.getElementById(id).value = ""); }
+        function del(event, i) { event.stopPropagation(); if(confirm("¿Eliminar?")) { let db = JSON.parse(localStorage.getItem(DB_KEY)); db.splice(i,1); localStorage.setItem(DB_KEY, JSON.stringify(db)); render(); } }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = sessionStorage.getItem('fanto_session');
+            if(saved) iniciarSesion(JSON.parse(saved));
+            setInterval(() => {
+                const d = new Date();
+                document.getElementById('clock').innerText = d.toLocaleString();
+                if (d.getHours() === 16 && d.getMinutes() === 35 && d.getSeconds() === 0) downloadData('AUTO');
+                render(); // Refresca para actualizar colores de vencimiento en tiempo real
+            }, 30000); // Refresca visualmente cada 30 seg
+        });
     </script>
 </body>
 </html>
